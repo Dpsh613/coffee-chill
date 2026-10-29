@@ -1,0 +1,7 @@
+# local capture tooling / browser profiles (not part of the site)
+tmpframes/
+node_modules/
+
+# OS junk
+.DS_Store
+Thumbs.db
