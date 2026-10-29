@@ -4,6 +4,14 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Coffee &amp; Chill — Voxel Diorama</title>
+<meta name="description" content="An interactive voxel diorama of a late-night coffee lounge. Drag to orbit, scroll to zoom, and tune the lighting in the studio panel." />
+<meta name="theme-color" content="#211b15" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Coffee &amp; Chill — Voxel Diorama" />
+<meta property="og:description" content="An interactive voxel diorama of a late-night coffee lounge, built with Three.js." />
+<meta property="og:image" content="preview.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231f1915'/%3E%3Cpath d='M13 25h31v13a12 12 0 0 1-12 12h-7a12 12 0 0 1-12-12z' fill='%23e9dcc2'/%3E%3Cpath d='M44 28h4a7 7 0 0 1 0 14h-4v-5h4a2 2 0 0 0 0-4h-4z' fill='%23e9dcc2'/%3E%3Cpath d='M20 17c0-3 3-3 3-6M29 17c0-3 3-3 3-6M38 17c0-3 3-3 3-6' stroke='%23d9a368' stroke-width='3' stroke-linecap='round' fill='none'/%3E%3C/svg%3E" />
 <style>
   :root {
     --ink: #e9ddcc;
@@ -243,7 +251,24 @@
     <div class="loadsub">Brewing the diorama</div>
     <div class="loadbar"><i></i></div>
   </div>
+  <noscript>
+    <style>.loadbox { display: none; }</style>
+    <div class="loadbox">
+      <div class="loadtitle">Coffee &amp; Chill</div>
+      <div class="loadsub">This diorama needs JavaScript</div>
+    </div>
+  </noscript>
 </div>
+
+<script>
+  /* If the Three.js modules never arrive (offline / blocked CDN), say so. */
+  setTimeout(function () {
+    var loader = document.getElementById('loader');
+    if (!loader || loader.classList.contains('hide')) return;
+    loader.innerHTML = '<div class="loadbox"><div class="loadtitle">Could not start</div>' +
+      '<div class="loadsub">The 3D library could not be loaded. Check your connection and reload.</div></div>';
+  }, 20000);
+</script>
 
 <script type="importmap">
 {
@@ -531,6 +556,15 @@ function buildLights() {
   scene.add(back);
   scene.add(back.target);
   lightRig.back = back;
+
+  // A soft overhead pool keeps the rug, table and sofa readable without flattening the room.
+  const room = new THREE.SpotLight(0xffc48c, 150, 30, 1.02, 1.0, 1.9);
+  room.position.set(-0.5, 15.5, 2.5);
+  room.target.position.set(0, 1.5, -0.4);
+  room.castShadow = false;
+  scene.add(room);
+  scene.add(room.target);
+  lightRig.room = room;
 
   // Practical lights (parented to the rotating diorama in buildWorld).
 }
@@ -1161,6 +1195,11 @@ function buildTV() {
   under.position.set(cx, 3.15, -6.5);
   turntable.add(under);
   lightRig.under = under;
+
+  // gentle warm fill on the console front, so the drawers and grain read
+  const consoleFill = new THREE.PointLight(0xffb273, 5.2, 5.5, 2);
+  consoleFill.position.set(-2.4, 4.1, -5.35);
+  turntable.add(consoleFill);
 }
 
 /* ------------------------------------------------------------------
@@ -1334,7 +1373,7 @@ function buildRug() {
   tex.magFilter = THREE.NearestFilter;
   tex.minFilter = THREE.LinearMipmapLinearFilter;
   tex.anisotropy = 8;
-  const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.45, roughness: 0.98, metalness: 0, polygonOffset: true, polygonOffsetFactor: -2 });
+  const mat = new THREE.MeshStandardMaterial({ map: tex, transparent: true, alphaTest: 0.45, roughness: 0.98, metalness: 0, emissive: 0x35271a, emissiveIntensity: 0.28, polygonOffset: true, polygonOffsetFactor: -2 });
   const top = new THREE.Mesh(new THREE.CircleGeometry(R, 96), mat);
   top.rotation.x = -Math.PI / 2;
   top.position.set(cx, PLATFORM_TOP + 0.132, cz);
@@ -2261,11 +2300,11 @@ function fitCamera(instant = false) {
   const vFov = THREE.MathUtils.degToRad(camera.fov);
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
   const half = Math.min(vFov, hFov) / 2;
-  const radius = 18.4;
+  const radius = 17.4;
   const dist = Math.min(128, (radius / Math.sin(half)) * 0.95);
   const target = new THREE.Vector3(0.55, 2.65, 0.05);
-  const az = THREE.MathUtils.degToRad(31);
-  const el = THREE.MathUtils.degToRad(34);
+  const az = THREE.MathUtils.degToRad(32);
+  const el = THREE.MathUtils.degToRad(32);
   const dir = new THREE.Vector3(
     Math.sin(az) * Math.cos(el),
     Math.sin(el),
@@ -2465,14 +2504,16 @@ buildWorld = function () {
   buildDustMesh();
 };
 
-init();
-
-window.addEventListener('error', (e) => {
+/* Surface startup failures in the loader instead of an endless "Brewing" screen. */
+function showStartupError(message) {
   const loader = document.getElementById('loader');
-  if (loader && !loader.classList.contains('hide')) {
-    loader.innerHTML = `<div class="loadbox"><div class="loadtitle">Could not start</div><div class="loadsub">${(e.message || 'WebGL is unavailable').toString().replace(/</g, '&lt;')}</div></div>`;
-  }
-});
+  if (!loader || loader.classList.contains('hide')) return;
+  loader.innerHTML = `<div class="loadbox"><div class="loadtitle">Could not start</div><div class="loadsub">${String(message || 'WebGL is unavailable').replace(/</g, '&lt;')}</div></div>`;
+}
+window.addEventListener('error', e => showStartupError(e.message || (e.target && e.target.src) || 'WebGL is unavailable'));
+window.addEventListener('unhandledrejection', e => showStartupError((e.reason && e.reason.message) || e.reason));
+
+init();
 </script>
 </body>
 </html>

@@ -1,46 +1,51 @@
-# Coffee &amp; Chill — Voxel Diorama
+# Coffee & Chill — Voxel Diorama
 
-A single-file, real-time Three.js voxel diorama of a late-night lounge: a giant
-latte, a phone-shaped stage with king-size media keys, a TV console, a poker
-table, a cream sofa, a giraffe figurine, plants, candles and drifting fireflies.
+A single-file, interactive 3D voxel diorama of a late-night coffee lounge: a maroon sofa, a poker table, a big-screen TV, palms, candles, a giant latte, and a couple of uninvited guests.
 
-**Live:** https://dpsh613.github.io/coffee-chill/
+Built with [Three.js](https://threejs.org/) and rendered from ~120k instanced voxels — no build step, no assets, just `index.html`.
 
-## What's in the box
+**Live demo:** https://dpsh613.github.io/coffee-chill/
 
-- `index.html` — the whole experience (markup, CSS, Three.js scene, UI). No build step.
-- `references/` — the photo/video references the scene was studied from.
+![Coffee & Chill preview](preview.png)
 
-## How it works
+## Features
 
-- **Voxel batching** — every prop is emitted as voxels into palette buckets
-  (`matte`, `fabric`, `wood`, `gloss`, `metal`, `glow`, `glass`) and each bucket is
-  drawn as a single `InstancedMesh`, so thousands of cubes cost a handful of draw calls.
-- **Procedural everything** — textures (latte art, rug pattern, wood grain, TV logo,
-  button glyphs) are painted onto `<canvas>` at runtime; nothing but the CDN module is fetched.
-- **Deterministic detail** — a hash/PRNG pair gives stable colour jitter, plank
-  variation and speckle across reloads.
-- **Lighting** — ACES tone mapping, a warm key with soft shadows, a cool fill, plus
-  flickering practical lights (candles, lamp, TV, PS5 LED) feeding an Unreal bloom pass.
-- **Interaction** — orbit/zoom/pan, auto-spin stage, sliders for exposure/key/ambient
-  glow/bloom/spin, toggles for spin, fireflies, shadows and wireframe, plus snapshot,
-  fullscreen and hide-UI. Keys: `H` UI, `R` reset view.
-
-Three.js r166 is loaded from jsDelivr via an import map, so the page is fully static
-and can be served from any static host.
+- **Voxel scene** — everything is generated procedurally in code: ~120,000 instanced cubes split into six material batches (matte, fabric, wood, gloss, metal, glow).
+- **Studio lighting** — HDR-ish studio environment, bloom pass, soft shadows, flickering practical lights (TV, candles, lamp).
+- **Controls** — drag to orbit, scroll to zoom, right-drag to pan, double-click to recentre.
+- **Settings panel** — exposure, key light, ambient, practical glow, bloom, turntable speed.
+- **Toggles** — auto-spin, fireflies, shadows, and a "voxel view" wireframe mode.
+- **Extras** — reset view, PNG snapshot, fullscreen, hide UI (`H`), reset camera (`R`).
+- **Responsive** — layouts adapt down to phone widths.
 
 ## Run locally
 
+ES modules are loaded from the CDN, so serve the file over HTTP (opening `file://` may be blocked by the browser):
+
 ```bash
-# any static server works
-npx serve .
-# then open the printed URL
+python -m http.server 8080
+# then open http://localhost:8080
 ```
 
-Opening `index.html` directly from disk also works in most browsers, but a local
-server is recommended for module loading.
+Or with Node:
 
-## Deploy
+```bash
+npx serve .
+```
 
-Hosted with GitHub Pages from the `main` branch root — pushing to `main` publishes
-the site.
+## Deployment
+
+GitHub Pages serves this repository from `main` (root). Pushing to `main` rebuilds the site automatically — nothing to compile, the single `index.html` is the deployable artifact.
+
+## Project layout
+
+```
+index.html    the entire diorama (markup, styles, scene, UI)
+preview.png   screenshot used in this README
+LICENSE       MIT
+references/   mood-board references (local only, git-ignored)
+```
+
+## License
+
+Code released under the [MIT License](LICENSE). Reference imagery in `references/` is not included in the repository.

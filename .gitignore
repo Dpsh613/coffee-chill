@@ -1,7 +1,13 @@
-# local capture tooling / browser profiles (not part of the site)
+# local scratch / dev artifacts — never deployed
 tmpframes/
-node_modules/
+references/
 
-# OS junk
+# OS / editor noise
 .DS_Store
 Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# logs
+*.log
